@@ -1,0 +1,7 @@
+{
+  "name": "RPG Combat Simulator & Batch RPG Game",
+  "description": "D&D 5e-style turn-based RPG combat simulator with party management, spellcasting, equipment inventory, auto-battles, and encounter simulation.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
