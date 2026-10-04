@@ -40,36 +40,37 @@ export const BatchSimulationModal: React.FC<BatchSimulationModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
-      <div className="bg-stone-900 border border-stone-700 rounded-2xl w-full max-w-4xl max-h-[92vh] p-4 sm:p-6 shadow-2xl flex flex-col space-y-4 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xs">
+      <div className="bg-stone-900 border border-stone-700 rounded-2xl w-full max-w-4xl max-h-[94vh] sm:max-h-[90vh] p-3 sm:p-5 shadow-2xl flex flex-col space-y-3 sm:space-y-4 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-stone-800">
-          <div>
-            <h2 className="text-lg font-bold text-stone-100 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-500" />
-              Simulateur de Combat RPG (Mode Batch)
+        <div className="flex items-center justify-between pb-2.5 sm:pb-3 border-b border-stone-800">
+          <div className="min-w-0 pr-2">
+            <h2 className="text-sm sm:text-lg font-bold text-stone-100 flex items-center gap-1.5 sm:gap-2 truncate">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
+              <span className="truncate">Simulateur RPG (Mode Batch)</span>
             </h2>
-            <p className="text-xs text-stone-400 mt-0.5">
-              Simule des dizaines ou centaines de combats automatisés, avec montée de niveau, butin, repos et statistiques détaillées.
+            <p className="text-[10px] sm:text-xs text-stone-400 mt-0.5 truncate">
+              Combats automatisés, progression, butin et statistiques.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors"
+            aria-label="Fermer"
+            className="p-1.5 rounded-lg text-stone-400 hover:text-stone-100 hover:bg-stone-800 transition-colors shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Configuration Controls */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-stone-950/50 p-3 rounded-xl border border-stone-800 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 bg-stone-950/50 p-2.5 sm:p-3 rounded-xl border border-stone-800 text-[11px] sm:text-xs">
           <div>
-            <label className="block text-stone-400 font-medium mb-1">Nombre de combats</label>
+            <label className="block text-stone-400 font-medium mb-1 truncate">Nombre de combats</label>
             <select
               value={combats}
               onChange={(e) => setCombats(Number(e.target.value))}
               disabled={isSimulating}
-              className="w-full px-2.5 py-1.5 rounded-lg bg-stone-800 border border-stone-700 text-stone-100 font-semibold"
+              className="w-full px-2 py-1.5 rounded-lg bg-stone-800 border border-stone-700 text-stone-100 font-semibold"
             >
               <option value={10}>10 combats</option>
               <option value={50}>50 combats</option>
@@ -81,12 +82,12 @@ export const BatchSimulationModal: React.FC<BatchSimulationModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-stone-400 font-medium mb-1">Repos à l'auberge tous les</label>
+            <label className="block text-stone-400 font-medium mb-1 truncate">Repos tous les</label>
             <select
               value={restFreq}
               onChange={(e) => setRestFreq(Number(e.target.value))}
               disabled={isSimulating}
-              className="w-full px-2.5 py-1.5 rounded-lg bg-stone-800 border border-stone-700 text-stone-100 font-semibold"
+              className="w-full px-2 py-1.5 rounded-lg bg-stone-800 border border-stone-700 text-stone-100 font-semibold"
             >
               <option value={5}>5 combats</option>
               <option value={10}>10 combats</option>
@@ -97,12 +98,12 @@ export const BatchSimulationModal: React.FC<BatchSimulationModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-stone-400 font-medium mb-1">Max monstres / combat</label>
+            <label className="block text-stone-400 font-medium mb-1 truncate">Max monstres</label>
             <select
               value={maxMonsters}
               onChange={(e) => setMaxMonsters(Number(e.target.value))}
               disabled={isSimulating}
-              className="w-full px-2.5 py-1.5 rounded-lg bg-stone-800 border border-stone-700 text-stone-100 font-semibold"
+              className="w-full px-2 py-1.5 rounded-lg bg-stone-800 border border-stone-700 text-stone-100 font-semibold"
             >
               <option value={1}>1 monstre</option>
               <option value={2}>2 monstres</option>
@@ -112,12 +113,12 @@ export const BatchSimulationModal: React.FC<BatchSimulationModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-stone-400 font-medium mb-1">Niveau initial du groupe</label>
+            <label className="block text-stone-400 font-medium mb-1 truncate">Niveau initial</label>
             <select
               value={partyLevel}
               onChange={(e) => setPartyLevel(Number(e.target.value))}
               disabled={isSimulating}
-              className="w-full px-2.5 py-1.5 rounded-lg bg-stone-800 border border-stone-700 text-stone-100 font-semibold"
+              className="w-full px-2 py-1.5 rounded-lg bg-stone-800 border border-stone-700 text-stone-100 font-semibold"
             >
               <option value={1}>Niveau 1</option>
               <option value={3}>Niveau 3</option>
@@ -135,7 +136,7 @@ export const BatchSimulationModal: React.FC<BatchSimulationModalProps> = ({
             type="button"
             onClick={handleRun}
             disabled={isSimulating}
-            className="w-full py-2.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-stone-950 shadow-lg shadow-amber-600/20 flex items-center justify-center gap-2 transition-all active:scale-[0.99] disabled:opacity-50"
+            className="w-full py-2.5 sm:py-3 px-4 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-stone-950 shadow-md shadow-amber-600/20 flex items-center justify-center gap-2 transition-all active:scale-[0.99] disabled:opacity-50 touch-manipulation"
           >
             {isSimulating ? (
               <>
@@ -152,53 +153,53 @@ export const BatchSimulationModal: React.FC<BatchSimulationModalProps> = ({
         </div>
 
         {/* Results Area */}
-        <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+        <div className="flex-1 overflow-y-auto space-y-3 sm:space-y-4 pr-1">
           {result ? (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {/* Summary KPIs */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                <div className="p-3 bg-stone-950/70 border border-stone-800 rounded-xl">
-                  <div className="text-[10px] text-stone-400 uppercase font-bold">Victoires</div>
-                  <div className="text-xl font-bold text-emerald-400 flex items-center gap-1.5 mt-0.5">
-                    <Trophy className="w-5 h-5" />
-                    {result.victories} / {result.numCombats}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
+                <div className="p-2.5 sm:p-3 bg-stone-950/70 border border-stone-800 rounded-xl">
+                  <div className="text-[9px] sm:text-[10px] text-stone-400 uppercase font-bold">Victoires</div>
+                  <div className="text-base sm:text-xl font-bold text-emerald-400 flex items-center gap-1 mt-0.5">
+                    <Trophy className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                    <span>{result.victories} / {result.numCombats}</span>
                   </div>
-                  <div className="text-[10px] text-stone-400">
+                  <div className="text-[9px] sm:text-[10px] text-stone-400">
                     Taux: {Math.round((result.victories / (result.numCombats || 1)) * 100)}%
                   </div>
                 </div>
 
-                <div className="p-3 bg-stone-950/70 border border-stone-800 rounded-xl">
-                  <div className="text-[10px] text-stone-400 uppercase font-bold">Monstres Tués</div>
-                  <div className="text-xl font-bold text-rose-400 flex items-center gap-1.5 mt-0.5">
-                    <Skull className="w-5 h-5" />
-                    {result.defeatedMonstersCount}
+                <div className="p-2.5 sm:p-3 bg-stone-950/70 border border-stone-800 rounded-xl">
+                  <div className="text-[9px] sm:text-[10px] text-stone-400 uppercase font-bold">Monstres Tués</div>
+                  <div className="text-base sm:text-xl font-bold text-rose-400 flex items-center gap-1 mt-0.5">
+                    <Skull className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                    <span>{result.defeatedMonstersCount}</span>
                   </div>
-                  <div className="text-[10px] text-stone-400">ennemis terrassés</div>
+                  <div className="text-[9px] sm:text-[10px] text-stone-400">ennemis vaincus</div>
                 </div>
 
-                <div className="p-3 bg-stone-950/70 border border-stone-800 rounded-xl">
-                  <div className="text-[10px] text-stone-400 uppercase font-bold">Sorts Lancés</div>
-                  <div className="text-xl font-bold text-blue-400 flex items-center gap-1.5 mt-0.5">
-                    <Sparkles className="w-5 h-5" />
-                    {result.totalSpellsCast}
+                <div className="p-2.5 sm:p-3 bg-stone-950/70 border border-stone-800 rounded-xl">
+                  <div className="text-[9px] sm:text-[10px] text-stone-400 uppercase font-bold">Sorts Lancés</div>
+                  <div className="text-base sm:text-xl font-bold text-blue-400 flex items-center gap-1 mt-0.5">
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                    <span>{result.totalSpellsCast}</span>
                   </div>
-                  <div className="text-[10px] text-stone-400">incantations magiques</div>
+                  <div className="text-[9px] sm:text-[10px] text-stone-400">incantations</div>
                 </div>
 
-                <div className="p-3 bg-stone-950/70 border border-stone-800 rounded-xl">
-                  <div className="text-[10px] text-stone-400 uppercase font-bold">Survivants</div>
-                  <div className="text-xl font-bold text-amber-400 flex items-center gap-1.5 mt-0.5">
-                    <Shield className="w-5 h-5" />
-                    {result.party.filter((h) => h.hp > 0).length} / {result.party.length}
+                <div className="p-2.5 sm:p-3 bg-stone-950/70 border border-stone-800 rounded-xl">
+                  <div className="text-[9px] sm:text-[10px] text-stone-400 uppercase font-bold">Survivants</div>
+                  <div className="text-base sm:text-xl font-bold text-amber-400 flex items-center gap-1 mt-0.5">
+                    <Shield className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                    <span>{result.party.filter((h) => h.hp > 0).length} / {result.party.length}</span>
                   </div>
-                  <div className="text-[10px] text-stone-400">héros encore vivants</div>
+                  <div className="text-[9px] sm:text-[10px] text-stone-400">héros vivants</div>
                 </div>
               </div>
 
               {/* Party Final Status */}
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-2">
                   <h4 className="text-xs font-bold text-stone-300 uppercase tracking-wider">État Final du Groupe</h4>
                   {onImportParty && (
                     <button
@@ -207,7 +208,7 @@ export const BatchSimulationModal: React.FC<BatchSimulationModalProps> = ({
                         onImportParty(result.party);
                         onClose();
                       }}
-                      className="text-xs px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-colors flex items-center gap-1"
+                      className="text-xs px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-colors flex items-center justify-center gap-1 shadow"
                     >
                       <Award className="w-3.5 h-3.5" />
                       Jouer avec ce groupe dans l'arène
@@ -225,11 +226,11 @@ export const BatchSimulationModal: React.FC<BatchSimulationModalProps> = ({
                           : 'bg-stone-900/30 border-stone-800/40 text-stone-500'
                       }`}
                     >
-                      <div className="flex justify-between items-start">
-                        <div>
+                      <div className="flex justify-between items-start gap-1">
+                        <div className="min-w-0">
                           <strong className="text-stone-100">{hero.name}</strong> • Niv.{hero.level} {hero.class_type} ({hero.race})
-                          <div className="text-[11px] text-stone-400 mt-0.5">
-                            PV: {hero.hp}/{hero.max_hp} • {hero.weapon.name} ({hero.weapon.damage_dice.num_dice}d{hero.weapon.damage_dice.roll_dice}) • {hero.armor.name} (+{hero.armor.bonus} CA)
+                          <div className="text-[11px] text-stone-400 mt-0.5 truncate">
+                            PV: {hero.hp}/{hero.max_hp} • {hero.weapon.name} • {hero.armor.name}
                           </div>
                         </div>
                         <div className="text-right text-[11px] font-mono text-amber-400 shrink-0">
@@ -248,10 +249,10 @@ export const BatchSimulationModal: React.FC<BatchSimulationModalProps> = ({
 
               {/* Monsters killed stats by level */}
               <div>
-                <h4 className="text-xs font-bold text-stone-300 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-bold text-stone-300 uppercase tracking-wider mb-1.5">
                   Statistiques des monstres tués par niveau
                 </h4>
-                <div className="p-3 bg-stone-950/70 border border-stone-800 rounded-xl space-y-1.5 text-xs font-mono max-h-48 overflow-y-auto">
+                <div className="p-2.5 sm:p-3 bg-stone-950/70 border border-stone-800 rounded-xl space-y-1.5 text-xs font-mono max-h-40 sm:max-h-48 overflow-y-auto">
                   {result.killedByLevel.map((bucket, idx) => {
                     const keys = Object.keys(bucket);
                     if (keys.length === 0) return null;
@@ -269,10 +270,10 @@ export const BatchSimulationModal: React.FC<BatchSimulationModalProps> = ({
 
               {/* Spells cast stats by level */}
               <div>
-                <h4 className="text-xs font-bold text-stone-300 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-bold text-stone-300 uppercase tracking-wider mb-1.5">
                   Statistiques des sorts lancés par niveau
                 </h4>
-                <div className="p-3 bg-stone-950/70 border border-stone-800 rounded-xl space-y-1.5 text-xs font-mono max-h-48 overflow-y-auto">
+                <div className="p-2.5 sm:p-3 bg-stone-950/70 border border-stone-800 rounded-xl space-y-1.5 text-xs font-mono max-h-40 sm:max-h-48 overflow-y-auto">
                   {result.spellsCastByLevel.map((bucket, idx) => {
                     const keys = Object.keys(bucket);
                     if (keys.length === 0) return null;
@@ -290,10 +291,10 @@ export const BatchSimulationModal: React.FC<BatchSimulationModalProps> = ({
 
               {/* Log samples */}
               <div>
-                <h4 className="text-xs font-bold text-stone-300 uppercase tracking-wider mb-2">
+                <h4 className="text-xs font-bold text-stone-300 uppercase tracking-wider mb-1.5">
                   Extraits du journal de simulation
                 </h4>
-                <div className="p-3 bg-stone-950 border border-stone-800 rounded-xl font-mono text-[11px] text-stone-300 max-h-40 overflow-y-auto space-y-1">
+                <div className="p-2.5 sm:p-3 bg-stone-950 border border-stone-800 rounded-xl font-mono text-[10px] sm:text-[11px] text-stone-300 max-h-36 overflow-y-auto space-y-1">
                   {result.logSamples.map((log, idx) => (
                     <div key={idx} className="leading-relaxed">{log}</div>
                   ))}
@@ -301,7 +302,7 @@ export const BatchSimulationModal: React.FC<BatchSimulationModalProps> = ({
               </div>
             </div>
           ) : (
-            <div className="p-12 text-center text-stone-500 text-xs">
+            <div className="p-8 sm:p-12 text-center text-stone-500 text-xs">
               Configurez les paramètres ci-dessus et cliquez sur <strong>Lancer la Simulation</strong> pour débuter.
             </div>
           )}
@@ -312,7 +313,7 @@ export const BatchSimulationModal: React.FC<BatchSimulationModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="py-1.5 px-4 rounded-lg text-xs font-semibold bg-stone-800 hover:bg-stone-700 text-stone-200 transition-colors"
+            className="w-full sm:w-auto py-2 px-4 rounded-lg text-xs font-semibold bg-stone-800 hover:bg-stone-700 text-stone-200 transition-colors"
           >
             Fermer
           </button>

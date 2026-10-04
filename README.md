@@ -1,136 +1,294 @@
-# 🎮 Résumé du Projet : Jeu de Combat Automatisé (RPG en mode batch)
+# ⚔️ RPG Combat Simulator & Batch RPG Game (D&D 5e)
 
-Ce projet est un jeu de rôle (RPG) textuel automatisé, simulant des combats entre un groupe de héros (party) et des monstres. Le jeu est conçu pour fonctionner en mode batch, c'est-à-dire sans interface graphique, et peut être exécuté depuis la ligne de commande.
+> **Simulateur de combat tactique au tour par tour et moteur d'analyse RPG basé sur les règles de Donjons & Dragons 5e.**
+> 
+> Ce projet combine une **arène interactive riche** (interface graphique Web moderne) et un **moteur de simulation par lots (mode batch)** permettant de simuler des centaines de combats automatisés pour observer l'équilibrage, la progression des personnages et les statistiques de jeu.
 
-## 🔧 Fonctionnalités principales :
+---
 
-### 1. Génération de Party
+## 📑 Table des matières
 
-Un groupe de héros est créé aléatoirement à partir de données stockées dans des fichiers JSON (`data/heroes.json`, `data/classes.json`, `data/races.json`, etc.).
-Chaque héros possède :
-- Classe (Fighter, Wizard, etc.)
-- Race (Humain, Elfe, Nain, etc.)
-- Attributs (Force, Dextérité, Intelligence, etc.)
-- Arme, Armure, Bouclier
-- Sorts (si applicable)
-- Points de vie, XP, Or
+1. [Vue d'ensemble du projet](#-vue-densemble-du-projet)
+2. [Architecture Technique](#-architecture-technique)
+   - [Technologies & Stack](#technologies--stack)
+   - [Arborescence du Code](#arborescence-du-code)
+   - [Cycle de vie et Persistance](#cycle-de-vie-et-persistance)
+3. [Structure Métier & Moteur de Règles](#-structure-métier--moteur-de-règles)
+   - [Système de Combat 5e](#système-de-combat-5e)
+   - [Gestion de la Classe d'Armure (CA)](#gestion-de-la-classe-darmure-ca)
+   - [Système de Sorts & Effets Actifs](#système-de-sorts--effets-actifs)
+   - [Progression, Niveaux et Butin](#progression-niveaux-et-butin)
+4. [Manuel du Joueur](#-manuel-du-joueur)
+   - [1. Caractéristiques & Modificateurs](#1-caractéristiques--modificateurs)
+   - [2. Déroulement d'un Combat](#2-déroulement-dun-combat)
+   - [3. Utilisation des Sorts](#3-utilisation-des-sorts)
+   - [4. Gestion de l'Inventaire & Équipement](#4-gestion-de-linventaire--équipement)
+   - [5. Formation, Repos et Sauvegardes](#5-formation-repos-et-sauvegardes)
+   - [6. Mode Simulation Batch](#6-mode-simulation-batch)
+5. [Fichiers de Données & Extensibilité](#-fichiers-de-données--extensibilité)
 
-### 2. Génération de Monstres
+---
 
-Des monstres sont générés aléatoirement à partir de types définis dans `data/monsters.json`. 
-Le niveau des monstres est adapté au niveau moyen du groupe de héros.
+## 🎯 Vue d'ensemble du projet
 
-Chaque monstre a :
-- Un type (nom, niveau)
-- Des statistiques (PV, CA, dégâts, XP, or)
+Le projet propose deux manières complémentaires d'expérimenter le jeu :
 
-### 3. Combat Automatisé
+- **L'Arène Interactive (Mode Joueur)** : Vous commandez une compagnie de 6 aventuriers (guerriers, paladins, prêtres, mages, bardes, roublards...) face à des vagues de monstres. Chaque tour de héros vous permet de choisir manuellement votre cible, de porter une attaque en mêlée avec votre arme équipée (prenant en compte le multi-attaque) ou d'incanter des sorts puissants consommant vos emplacements de sorts.
+- **Le Simulateur Batch (Mode Analyse)** : Permet d'exécuter instantanément des dizaines ou centaines de combats successifs avec gestion automatique des repos, montées de niveau et récolte de butin, pour compiler des statistiques exhaustives (taux de victoire, répartition des monstres tués par niveau, sorts les plus incantés). Vous pouvez ensuite importer directement le groupe vétéran résultant dans l'arène interactive !
 
-Les combats se déroulent en tour par tour, avec un ordre d'initiative basé sur les caractéristiques des personnages.
-Les héros et monstres s'affrontent tour à tour :
-- Attaques normales (avec arme)
-- Sorts (si le personnage est un lanceur de sorts)
-Les combats se terminent quand :
-- Tous les héros sont morts → Défaite
-- Tous les monstres sont morts → Victoire
+---
 
-### 4. Système de Niveau et d'Évolution
+## 🏗️ Architecture Technique
 
-Les héros montent en niveau à mesure qu'ils gagnent de l'XP.
-À chaque montée de niveau :
-- Ils gagnent des PV
-- Ils obtiennent de nouveaux sorts (selon leur classe)
-- Ils reçoivent plus de fentes de sorts (spell slots)
+### Technologies & Stack
 
-### 5. Système de Sauvegarde et de Stats
+- **Runtime** : Node.js 22 (LTS)
+- **Framework Front-End** : React 19 (Single Page Application réactive)
+- **Langage** : TypeScript 5.7+ en typage strict
+- **Build Tooling** : Vite 6 (démarrage instantané, bundling optimisé ES2022)
+- **Styling** : Tailwind CSS v4 avec design responsive sombre adapté aux jeux de rôle
+- **Iconographie** : Lucide React
+- **Hébergement & Port** : Serveur de développement configuré sur `0.0.0.0:3000`
 
-À chaque 10 combats, le groupe se repose et se soigne (recharge des sorts, restauration des PV).
-Des statistiques sont collectées :
-- Nombre de monstres tués par niveau
-- Sorts lancés
-- XP et or gagnés
+### Arborescence du Code
 
-### 6. Mode Batch
-
-Le jeu est conçu pour tourner en mode batch (sans interaction utilisateur pendant les combats). Un seul `input()` est utilisé à la fin de chaque round, si `BATCH_MODE = False`.
-
-## 📁 Fichiers de données utilisés :
-- `data/monsters.json` : Définitions des types de monstres
-- `data/spells.json` : Sorts disponibles
-- `data/classes.json` : Classes et règles de sorts
-- `data/races.json` : Types de races
-- `data/weapons.json`, `data/armors.json`, `data/shields.json` : Équipements
-- `data/heroes.json` : Héros de départ
-
-## 🧠 Objectif du Jeu :
-
-Simuler un cycle de combats entre un groupe de héros et des monstres.
-Observer l'évolution du groupe au fil des combats.
-Collecter des statistiques de jeu pour analyser les performances et les tendances (ex : sorts utilisés, monstres tués par niveau, etc.)
-
-## 🧪 Exemple de sortie :
-
-```
-====================================================================================================
-DEBUG: 2024-06-23 09:20:00
-====================================================================================================
-Party Status: 6/6 
-  Bilbo: Lvl 1 Rogue Hobbit (AC 14 - THACO 20 - Dagger 1d3) - STR 10 INT 12 WIS 12 DEX 14 CON 10 CHA 14 - HP 7/7 - OK, XP 0, 35 gp - 
-  Aragorn: Lvl 1 Fighter Human (AC 14 - THACO 18 - Sword 1d6) - STR 14 INT 10 WIS 10 DEX 12 CON 13 CHA 14 - HP 10/10 - OK, XP 0, 100 gp - 
-  Gimli: Lvl 1 Fighter Dwarf (AC 14 - THACO 16 - Axe 1d7) - STR 14 INT 10 WIS 10 DEX 12 CON 14 CHA 10 - HP 11/11 - OK, XP 0, 45 gp - 
-  Lyra: Lvl 1 Bard Human (AC 12 - THACO 20 - Dagger 1d3) - STR 10 INT 12 WIS 12 DEX 14 CON 10 CHA 16 - HP 8/8 - OK, XP 0, 40 gp, Spells slots: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]/[1, 0, 0, 0, 0, 0, 0, 0, 0, 0] - 1:Healing Word
-  Gandalf: Lvl 1 Wizard Human (AC 11 - THACO 21 - Staff 1d4) - STR 8 INT 16 WIS 14 DEX 10 CON 12 CHA 15 - HP 8/8 - OK, XP 0, 50 gp, Spells slots: [3, 0, 0, 0, 0, 0, 0, 0, 0, 0]/[3, 0, 0, 0, 0, 0, 0, 0, 0, 0] - 1:Shield
-  Elrond: Lvl 1 Cleric Elf (AC 14 - THACO 19 - Mace 1d5) - STR 12 INT 12 WIS 15 DEX 10 CON 12 CHA 14 - HP 9/9 - OK, XP 0, 60 gp, Spells slots: [3, 0, 0, 0, 0, 0, 0, 0, 0, 0]/[3, 0, 0, 0, 0, 0, 0, 0, 0, 0] - 1:Healing Word
-====================================================================================================
-STATS (Retour auberge tous les 10 combats): 675 victoires et 1026 monstres tués! 3352 sorts lancés!
-====================================================================================================
-Party Status: 0/6 
-  Bilbo: Lvl 15 Rogue Hobbit (AC 14 - THACO 13 - Dagger 1d3) - STR 10 INT 12 WIS 12 DEX 14 CON 10 CHA 14 - HP -12/85 - OK, XP 7388, 681 gp - 
-  Aragorn: Lvl 15 Fighter Human (AC 14 - THACO 4 - Sword 1d6) - STR 14 INT 10 WIS 10 DEX 12 CON 13 CHA 14 - HP -28/71 - OK, XP 7434, 748 gp - 
-  Gimli: Lvl 15 Fighter Dwarf (AC 14 - THACO 2 - Axe 1d7) - STR 14 INT 10 WIS 10 DEX 12 CON 14 CHA 10 - HP -17/86 - OK, XP 7384, 692 gp - 
-  Lyra: Lvl 15 Bard Human (AC 12 - THACO 13 - Dagger 1d3) - STR 10 INT 12 WIS 12 DEX 14 CON 10 CHA 16 - HP -8/70 - OK, XP 7404, 690 gp, Spells slots: [0, 9, 9, 9, 4, 0, 6, 0, 0, 0]/[9, 9, 9, 9, 9, 9, 6, 1, 0, 0] - 1:Healing Word|1:Dissonant Whispers|2:Calm Emotions|2:Shatter|2:Vicious Mockery|1:Sleep|4:Shout of Discord|4:Compulsive Dance|3:Hypnotic Pattern|3:Fear|6:Shout of Triumph|5:Synaptic Static|7:Ethereal Melody|4:Confusion|8:Feeblemind
-  Gandalf: Lvl 15 Wizard Human (AC 11 - THACO 17 - Staff 1d4) - STR 8 INT 16 WIS 14 DEX 10 CON 12 CHA 15 - HP -16/78 - OK, XP 7449, 700 gp, Spells slots: [9, 9, 9, 9, 1, 0, 0, 0, 0, 0]/[9, 9, 9, 9, 9, 8, 6, 3, 0, 0] - 1:Shield|1:Fire Bolt|1:Magic Missile|2:Blindness|2:Scorching Ray|2:Acid Arrow|3:Lightning Bolt|3:Fireball|3:Slow|4:Blight|4:Ice Storm|4:Phantasmal Killer|5:Cone of Cold|5:Hold Monster|5:Cloudkill|6:Sunbeam|6:Disintegrate|6:Chain Lightning|7:Finger of Death|7:Delayed Blast Fireball|7:Prismatic Spray|8:Incendiary Cloud|8:Sunburst
-  Elrond: Lvl 15 Cleric Elf (AC 14 - THACO 11 - Mace 1d5) - STR 12 INT 12 WIS 15 DEX 10 CON 12 CHA 14 - HP -11/75 - OK, XP 7347, 700 gp, Spells slots: [9, 9, 9, 3, 1, 0, 7, 2, 0, 0]/[9, 9, 9, 9, 9, 9, 7, 2, 0, 0] - 1:Healing Word|1:Cure Wounds|1:Guiding Bolt|2:Heal|2:Spiritual Weapon|2:Lesser Restoration|3:Greater Heal|3:Spirit Guardians|3:Bestow Curse|4:Sacred Radiance|4:Death Ward|4:Guardian of Faith|5:Mass Cure Wounds|5:Flame Strike|5:Insect Plague|6:Harm|6:Heal Divine|6:Blade Barrier|7:Divine Word|7:Resurrection|7:Fire of Judgment|8:Holy Aura|8:Earthquake|8:Unholy Blight
-
-Monster Status:
-  Storm Giant (Lvl 15 - AC 16): HP 42/185
-  Purple Worm (Lvl 15 - AC 18): HP 32/304
-
-Monsters kill stats
-Lvl 1: {'Goblin': 81, 'Kobold': 93, 'Skeleton': 72, 'Giant Rat': 87}
-Lvl 2: {'Orc': 60, 'Zombie': 37, 'Wizard': 40, 'Bandit': 49}
-Lvl 3: {'Bugbear': 36, 'Dire Wolf': 31, 'Acolyte': 26, 'Imp': 28}
-Lvl 4: {'Ogre': 21, 'Gargoyle': 23, 'Harpy': 17, 'Cult Fanatic': 23}
-Lvl 5: {'Ghoul': 24, 'Griffon': 19, 'Basilisk': 15, 'Druid Apprentice': 20}
-Lvl 6: {'Dragon Whelp': 11, 'Manticore': 10, 'Minotaur': 14, 'Mage': 16}
-Lvl 7: {'Mummy': 7, 'Wyvern': 16, 'Owlbear': 11, 'Succubus': 13}
-Lvl 8: {'Troll': 6, 'Green Hag': 12, 'Cyclops': 7, 'Werewolf': 6}
-Lvl 9: {'Vampire Spawn': 8, 'Night Hag': 8, 'Chimera': 6, 'Flesh Golem': 8}
-Lvl 10: {'Hill Giant': 2, 'Young White Dragon': 4, 'Mind Flayer': 7, 'Bone Devil': 4}
-Lvl 11: {'Hydra': 1, 'Stone Golem': 3, 'Young Black Dragon': 2, 'Efreeti': 2}
-Lvl 12: {'Frost Giant': 2, 'Young Blue Dragon': 4, 'Archmage': 3, 'Beholder': 2}
-Lvl 13: {'Fire Giant': 2, 'Young Red Dragon': 2, 'Githyanki Supreme': 4, 'Nal feshnee Demon': 1}
-Lvl 14: {'Iron Golem': 1, 'Adult White Dragon': 2, 'Ice Devil': 1, 'Rakshasa': 1}
-Lvl 15: {'Adult Green Dragon': 0, 'Purple Worm': 0, 'Vampire Lord': 1, 'Storm Giant': 0}
-Lvl 16: {'Adult Blue Dragon': 0, 'Marilith Demon': 0, 'Planetar Angel': 0, 'Mummy Lord': 0}
-Lvl 17: {'Adult Red Dragon': 0, 'Goristro Demon': 0, 'Death Knight': 0, 'Androsphinx': 0}
-Lvl 18: {'Lich': 0, 'Balor Demon': 0, 'Ancient White Dragon': 0, 'Pit Fiend Devil': 0}
-Lvl 19: {'Ancient Blue Dragon': 0, 'Ancient Green Dragon': 0, 'Kraken': 0, 'Solar Angel': 0}
-Lvl 20: {'Ancient Red Dragon': 0, 'Tarrasque': 0, 'Empyrean': 0, 'Ancient Gold Dragon': 0}
-
-Spells cast stats
-Lvl 1: {'Fire Bolt': 0, 'Magic Missile': 290, 'Shield': 0, 'Healing Word': 379, 'Cure Wounds': 180, 'Guiding Bolt': 110, 'Sleep': 0, 'Dissonant Whispers': 77, 'Ice Lance': 0, 'Entangle': 0, 'Burning Hands': 0, 'Shield Wild': 0, 'Bless': 0, 'Cure Wounds Light': 0, 'Searing Smite': 0}
-Lvl 2: {'Scorching Ray': 7, 'Acid Arrow': 232, 'Blindness': 0, 'Heal': 177, 'Spiritual Weapon': 76, 'Lesser Restoration': 0, 'Vicious Mockery': 0, 'Shatter': 244, 'Calm Emotions': 0, 'Flame Blade': 0, 'Moonbeam': 0, 'Healing Spirit': 0, "Melf's Minute Meteors": 0, 'Divine Smite': 0, 'Thunderous Smite': 0, 'Shield of Faith': 0}
-Lvl 3: {'Fireball': 0, 'Lightning Bolt': 248, 'Slow': 0, 'Greater Heal': 221, 'Spirit Guardians': 55, 'Bestow Curse': 0, 'Hypnotic Pattern': 0, 'Fear': 0, 'Stinking Cloud': 0, 'Call Lightning': 0, 'Erupting Earth': 0, 'Dispel Magic': 0, 'Fireball Wild': 0, 'Haste': 0, 'Blinding Smite': 0, 'Elemental Smite': 0, 'Revivify': 0}
-Lvl 4: {'Ice Storm': 0, 'Blight': 176, 'Phantasmal Killer': 0, 'Sacred Radiance': 0, 'Death Ward': 121, 'Guardian of Faith': 0, 'Compulsive Dance': 0, 'Confusion': 0, 'Shout of Discord': 161, 'Grasping Vine': 0, 'Vitriolic Sphere': 0, 'Ice Storm Sorcery': 0, 'Blight Force': 0, 'Aura of Life': 0, 'Staggering Smite': 0, 'Death Ward Faith': 0}
-Lvl 5: {'Cone of Cold': 91, 'Cloudkill': 0, 'Hold Monster': 0, 'Mass Cure Wounds': 103, 'Flame Strike': 0, 'Insect Plague': 4, 'Synaptic Static': 71, 'Wrath of Nature': 0, 'Antilife Shell': 0, 'Immolation': 0, 'Cone of Cold Sorcery': 0, 'Hold Monster Wild': 0, 'Destructive Wave': 0, 'Banishing Smite': 0, 'Holy Cure Wounds': 0}
-Lvl 6: {'Disintegrate': 87, 'Chain Lightning': 0, 'Sunbeam': 0, 'Harm': 0, 'Heal Divine': 99, 'Blade Barrier': 0, 'Shout of Triumph': 87, 'Eyebite': 0, "Otto's Irresistible Dance": 0, 'Wall of Thorns': 0, 'Heal Nature': 0, 'Chain Lightning Sorcery': 0, 'Disintegrate Wild': 0, 'Sunbeam Wild': 0, 'Holy Cleave': 0, 'Aura of Devotion': 0, 'Chilling Smite': 0}
-Lvl 7: {'Delayed Blast Fireball': 0, 'Finger of Death': 42, 'Prismatic Spray': 0, 'Divine Word': 0, 'Resurrection': 0, 'Fire of Judgment': 0, 'Power Word: Pain': 0, 'Ethereal Melody': 0, 'Regenerate': 0, 'Fire Storm': 0, 'Reverse Gravity': 0, 'Whirlwind': 0, 'Prismatic Spray Sorcery': 0, 'Delayed Fireball': 0, 'Finger of Ruin': 0, 'Shield of Valor': 0, 'Radiant Weapon': 0, 'Acidic Vow': 0}
-Lvl 8: {'Sunburst': 0, 'Incendiary Cloud': 9, 'Mind Blank': 0, 'Holy Aura': 0, 'Earthquake': 2, 'Unholy Blight': 0, 'Feeblemind': 3, 'Power Word: Stun': 0, 'Animal Shapes': 0, 'Incendiary Cloud Sorcery': 0, 'Sunburst Wild': 0, 'Power Word Stun Sorcery': 0, 'Cleansing Touch': 0, 'Holy Bastion': 0, 'Necrotic Smite': 0}
-Lvl 9: {'Meteor Swarm': 0, 'Time Stop': 0, 'Power Word Kill': 0, 'Mass Heal': 0, 'Gate': 0, 'Storm of Judgment': 0, 'Psychic Scream': 0, 'Foresight': 0, 'Storm of Vengeance': 0, 'Shapechange': 0, 'Foresight Nature': 0, 'Meteor Swarm Sorcery': 0, 'Wish Wild': 0, 'Power Word Kill Sorcery': 0, 'Righteous Verdict': 0, 'Aura of Supremacy': 0, 'Sonic Smite': 0}
-
+```text
+├── data/ & src/data/          # Fichiers de données du jeu (JSON)
+│   ├── heroes.json            # Héros initiaux pré-générés (Tolkien & fantasy)
+│   ├── monsters.json          # Types de monstres (niveaux 1 à 20)
+│   ├── classes.json           # Définitions des classes (Dés de vie, slots, caractéristiques)
+│   ├── races.json             # Races jouables et modificateurs
+│   ├── weapons.json           # Armes et dés de dégâts
+│   ├── armors.json            # Armures et bonus de CA
+│   ├── shields.json           # Boucliers
+│   ├── spells.json            # Base de sorts (niveaux 1 à 9 par classe)
+│   ├── magic_items.json       # Objets magiques, potions et consommables
+│   └── magic_config.json      # Probabilités de drop selon la rareté
+│
+├── src/
+│   ├── types/
+│   │   └── game.ts            # Interfaces TypeScript (HeroData, MonsterData, SpellData...)
+│   │
+│   ├── engine/                # Moteur de jeu pur (D&D 5e)
+│   │   ├── dice.ts            # Lancer de dés (d20, d4..d12), calcul de modificateurs
+│   │   ├── character.ts       # Calcul de CA, bonus d'attaque, effets, sauvegarde, équipement
+│   │   ├── effects.ts         # Registre et résolution des effets de sorts (soin, dégâts, contrôle...)
+│   │   ├── battle.ts          # Moteur de combat : initiative, jet de toucher, crits, fumbles, loot
+│   │   ├── loader.ts          # Génération du groupe, montée de niveau, chargement des données
+│   │   └── simulation.ts      # Simulateur batch de combats automatisés
+│   │
+│   ├── components/            # Composants UI React
+│   │   ├── CharacterCard.tsx        # Cartes des héros et monstres (PV, CA, états, tours)
+│   │   ├── ActionPanel.tsx          # Barre d'actions (Attaque de mêlée, sorts avec slots)
+│   │   ├── CharacterSheetModal.tsx  # Fiche détaillée à onglets (Aperçu, Inventaire, Sorts)
+│   │   ├── CombatLog.tsx            # Journal de combat temps réel avec filtres & auto-scroll
+│   │   ├── ReorderModal.tsx         # Réordonnancement de formation (Première ligne vs Arrière-garde)
+│   │   ├── KilledMonstersModal.tsx  # Bestiaire des monstres abattus cette session
+│   │   └── BatchSimulationModal.tsx # Dialogue d'exécution de la simulation batch & graphiques
+│   │
+│   ├── App.tsx                # Composant racine, orchestration de l'état et boucle de combat
+│   ├── main.tsx               # Point d'entrée React DOM
+│   └── index.css              # Feuilles de styles Tailwind CSS
+│
+├── index.html                 # Document HTML principal
+├── package.json               # Dépendances et scripts npm
+├── tsconfig.json              # Configuration du compilateur TypeScript
+└── vite.config.ts             # Configuration du bundler Vite
 ```
 
-## 📌 Conclusion :
+### Cycle de vie et Persistance
 
-C'est un simulateur de combat RPG en mode batch, parfait pour les tests automatisés, l'analyse statistique de gameplay ou l'expérimentation de mécaniques de jeu (classes, sorts, niveaux, etc.). Il est entièrement paramétrable via des fichiers JSON et peut être étendu facilement.
+- **Gestion d'état locale** : L'état complet du groupe (PV actuels, inventaire, équipement actif, points d'expérience, or, emplacements de sorts restants) et les statistiques de monstres tués sont synchronisés en temps réel.
+- **Sauvegarde silencieuse** : Une persistance automatique s'effectue dans le `localStorage` du navigateur à chaque événement clé (fin de combat, modification de fiche, élimination de monstre, repos), sans polluer le journal de combat.
+- **Export & Import JSON** : Deux boutons permettent d'exporter la sauvegarde intégrale sous forme de fichier `.json` sur votre ordinateur et de la réimporter ultérieurement sur n'importe quelle session.
+
+---
+
+## 📜 Structure Métier & Moteur de Règles
+
+Le moteur implémente fidèlement les mécaniques fondamentales du SRD 5e de Donjons & Dragons :
+
+### Système de Combat 5e
+
+1. **Initiative** : Au début de chaque round, chaque combattant vivant effectue un test d'initiative :
+   $$\text{Initiative} = 1\text{d}20 + \text{Modificateur de Dextérité} - (\text{Malus d'entrave})$$
+   L'ordre d'action est déterminé par ordre décroissant d'initiative.
+2. **Jet d'attaque** :
+   $$\text{Jet d'attaque} = 1\text{d}20 + \text{Bonus d'attaque (Maîtrise + Caractéristique)}$$
+   - Si le jet naturel est un **1** : **Échec Critique (Fumble)**. L'attaquant manque sa cible et subit $1\text{d}4$ points de dégâts de maladresse.
+   - Si le jet naturel est un **20** : **Coup Critique**. Les dés de dégâts sont doublés.
+   - Si la cible est **Inconsciente (Unconscious)** ou **Paralysée (Paralyzed)** : le coup touche **automatiquement** et devient un **coup critique**.
+   - Si $\text{Jet d'attaque} \ge \text{Classe d'Armure (CA)}$ : l'attaque réussit.
+   - Si $\text{Jet d'attaque} < \text{CA}$ : l'attaque échoue.
+
+### Gestion de la Classe d'Armure (CA)
+
+La formule de CA s'adapte au type d'armure portée par le héros :
+- **Armures lourdes** (*Chainmail Armor, Plate Armor*) :
+  $$\text{CA} = 10 + \text{Bonus d'armure} + \text{Bonus de bouclier} + \text{Modificateurs d'effets}$$
+  *(La Dextérité n'accorde aucun bonus).*
+- **Armures intermédiaires** (*Scale Armor, Hide Armor*) :
+  $$\text{CA} = 10 + \text{Bonus d'armure} + \min(2, \text{Modificateur Dex}) + \text{Bonus de bouclier} + \text{Effets}$$
+- **Armures légères ou tissus** (*Cloth, Leather, Robe*) :
+  $$\text{CA} = 10 + \text{Bonus d'armure} + \text{Modificateur Dex complet} + \text{Bonus de bouclier} + \text{Effets}$$
+- **Objets magiques portés** (*Anneaux de protection, etc.*) : ajoutent leur bonus directement à la CA.
+- **Effets temporaires** :
+  - Sort *Shield* : $+5\text{ CA}$ pendant 1 round.
+  - Sort *Foresight* : $+2\text{ CA}$ et $+2$ aux jets d'attaque.
+  - Conditions *Aveuglé* ou *Entravé* : $-2\text{ CA}$ et $-2$ aux jets d'attaque.
+
+### Système de Sorts & Effets Actifs
+
+Les lanceurs de sorts (Mage, Prêtre, Barde, Druide, Ensorceleur, Paladin, Rôdeur) ont accès à des sorts classés par niveaux (1 à 9) :
+
+| Catégorie d'effet | Mécanique en jeu |
+|---|---|
+| **Dégâts d'attaque** | Inflige des dégâts via la formule de dés du sort. Si le sort impose un jet de sauvegarde, la cible teste sa caractéristique contre le DD du lanceur ($\text{DD} = 8 + \text{Modificateur de sort} + \text{Maîtrise}$). Si réussite et `dc_success = half`, dégâts réduits de moitié. |
+| **Soin (Heal)** | Restaure les PV d'un allié blessé (jusqu'à son maximum de PV). |
+| **Bénédiction (Bless)** | Ajoute un dé de $+1\text{d}4$ aux dégâts de toutes les attaques d'arme de la cible pendant la durée du buff. |
+| **Bouclier (Shield)** | Augmente temporairement la CA pour parer les attaques ennemies. |
+| **Châtiment (Smite)** | Imprègne l'arme du lanceur : bonus de dégâts majeurs libéré automatiquement au prochain coup d'arme réussi (avec possibilité d'aveugler la cible). |
+| **Protection Mortelle (Death Ward)** | Protège le personnage contre le prochain coup fatal : s'il devait tomber à 0 PV, il est instantanément maintenu à 1 PV ! |
+| **Résurrection (Revivify / Resurrection)** | Ranime un compagnon tombé au combat avec 1 PV et dissipe ses altérations négatives. |
+| **Salvation Absolue (Wish)** | Restaure intégralement les PV de la cible et purge toutes les altérations d'état. |
+| **Contrôle Mental / Physique** | Applique des altérations : *Sommeil* (Inconscient), *Paralysie*, *Cécité*, *Effroi*, *Entrave*, *Désavantage*. Les créatures protégées par *Mind Blank* sont immunisées aux effets mentaux et psychiques. |
+
+### Progression, Niveaux et Butin
+
+- **Points d'expérience (XP)** : À chaque victoire, la totalité de l'XP des monstres vaincus est partagée équitablement entre les survivants.
+- **Passage de niveau** : Un niveau est franchi tous les $500 \times \text{Niveau}$ points d'XP :
+  - Augmentation des PV Max : lancer du dé de vie de la classe ($1\text{d}6$, $1\text{d}8$ ou $1\text{d}10$) $+$ Modificateur de Constitution.
+  - Nouveaux emplacements de sorts et découverte de nouveaux sorts pour les classes magiques.
+  - Déblocage de frappes multiples (**Multi-attaque**) : 2 attaques au niveau 5, 3 attaques au niveau 11, 4 attaques au niveau 20 pour les guerriers.
+- **Butin (Loot)** : 
+  - 25% de chance de trouver une arme, armure ou bouclier sur un monstre vaincu.
+  - Jets de rareté pour les objets magiques (*Commun, Peu commun, Rare, Très rare, Légendaire*).
+  - **Auto-équipement intelligent** : Si un objet trouvé améliore strictement la puissance de frappe ou la CA d'un héros, celui-ci s'en équipe immédiatement !
+
+---
+
+## 📖 Manuel du Joueur
+
+### 1. Caractéristiques & Modificateurs
+
+Chaque personnage possède six attributs fondamentaux compris généralement entre 8 et 20. Le modificateur associé s'applique à tous les calculs :
+
+$$\text{Modificateur} = \lfloor \frac{\text{Valeur} - 10}{2} \rfloor$$
+
+- **Force (STR)** : Détermine les dégâts au corps-à-corps et le bonus de toucher des Guerriers, Paladins et monstres.
+- **Dextérité (DEX)** : Détermine l'initiative, le bonus de toucher des Rôdeurs et Roublards, et augmente la Classe d'Armure.
+- **Constitution (CON)** : Détermine le gain de PV à chaque niveau et les jets de sauvegarde contre le poison/épuisement.
+- **Intelligence (INT)** : Caractéristique d'incantation du Magicien (détermine son bonus d'attaque magique et son DD de sort).
+- **Sagesse (WIS)** : Caractéristique d'incantation du Prêtre et du Druide.
+- **Charisme (CHA)** : Caractéristique d'incantation du Barde, de l'Ensorceleur et du Paladin.
+
+---
+
+### 2. Déroulement d'un Combat
+
+1. Cliquez sur **🐉 Nouvelle Rencontre** pour générer des monstres dont le niveau s'adapte au niveau moyen de votre groupe.
+2. Observez la **bannière de tour** : elle indique qui doit agir.
+   - **Tour d'un monstre** : L'intelligence artificielle résout automatiquement l'attaque du monstre (qui vise en priorité les cibles de première ligne).
+   - **Tour d'un de vos héros** : La carte du héros s'illumine en **ambre**. C'est à vous de jouer !
+3. **Sélectionner une cible** : Cliquez sur n'importe quelle carte de monstre ou d'allié. La cible active est encadrée d'une **bordure bleue**.
+4. **Choisir une action** :
+   - Cliquez sur **⚔️ Melee Attack** pour attaquer le monstre ciblé avec votre arme.
+   - Ou cliquez sur l'un des boutons de sorts disponibles dans le panneau d'action.
+5. Une fois l'action effectuée, le tour passe au combattant suivant dans l'ordre d'initiative jusqu'à la victoire ou la défaite.
+
+---
+
+### 3. Utilisation des Sorts
+
+- Les sorts bénéfiques (soins, boucliers, résurrections) sont signalés par une icône **💚** et ciblent vos **alliés**.
+- Les sorts offensifs (boules de feu, éclairs, projectiles magiques) sont signalés par une icône **🔥** et ciblent les **monstres**.
+- Chaque bouton de sort affiche le **Niveau du sort** ainsi que le ratio de fentes restantes, par ex. `(2/3)` signifie 2 fentes disponibles sur un maximum de 3 pour ce niveau.
+- Les sorts multi-cibles (*AOE*) s'appliquent automatiquement à l'ensemble des cibles valides sans nécessiter de sélection individuelle.
+
+---
+
+### 4. Gestion de l'Inventaire & Équipement
+
+Vous pouvez ouvrir la fiche détaillée d'un personnage à tout moment en effectuant un **double-clic sur sa carte** ou en cliquant sur l'icône **ℹ️ (Info)**.
+
+Dans l'onglet **Inventaire** :
+- **Équiper** : Cliquez sur une arme, armure ou bouclier de l'inventaire puis sur le bouton vert **Équiper**. La CA et les dégâts se recalculent immédiatement.
+- **Déséquiper** : Retire l'objet actuellement porté pour revenir à l'état de base (mains nues pour les armes, vêtements simples pour l'armure).
+- **Boire / Utiliser (Potions & Consommables)** :
+  - *Potion of Healing* : Rend instantanément des PV au personnage.
+  - *Élixirs de purification* : Guérissent immédiatement les états négatifs (paralysie, aveuglement, sommeil...).
+  - Les consommables sont automatiquement décomptés de l'inventaire après usage.
+- **Transférer** : Sélectionnez un objet non équipé, choisissez un compagnon dans le menu déroulant, puis cliquez sur **Transférer**.
+- **Supprimer** : Permet de détruire un objet superflu de l'inventaire.
+
+---
+
+### 5. Formation, Repos et Sauvegardes
+
+- **Formation (Bouton Formation / 🔀)** :
+  - Ouvre une boîte de dialogue permettant de monter ou descendre la position des héros dans le groupe.
+  - **Les 3 premiers héros** forment la **Première Ligne (Front-line)** et encaissent la majorité des attaques directes des monstres.
+  - **Les 3 suivants** sont placés en **Arrière-Garde (Back-line)**, position idéale pour les jeteurs de sorts et personnages plus fragiles.
+- **Repos Complet (Bouton 🏕️ Repos complet)** :
+  - Reconstitue 100% des points de vie de tous les aventuriers.
+  - Recharge l'intégralité des emplacements de sorts à leur valeur maximale.
+  - Dissipe toutes les afflictions et effets temporaires.
+- **Sauvegarde & Restauration (Boutons 💾, ⬇️, ⬆️)** :
+  - Le bouton **Sauvegarder** enregistre manuellement l'état du groupe.
+  - Le bouton **Télécharger (⬇️)** exporte un fichier JSON autonome `rpg_savegame.json`.
+  - Le bouton **Charger (⬆️)** permet de restaurer une sauvegarde précédente en téléversant votre fichier JSON.
+
+---
+
+### 6. Mode Simulation Batch
+
+Accessible via le bouton supérieur **Mode Simulation Batch** :
+
+1. Choisissez le nombre de combats (de 10 à 1 000).
+2. Définissez la fréquence des pauses à l'auberge (ex : repos tous les 20 combats).
+3. Cliquez sur **Lancer la Simulation**.
+4. Le moteur exécute les rounds en quelques millisecondes et produit :
+   - Le taux de victoire du groupe.
+   - Le volume total d'ennemis tués et de sorts lancés.
+   - La progression finale du groupe (niveaux atteints, PV, or et sorts appris).
+   - Les statistiques de mortalité des monstres par niveau (de Lvl 1 à 20).
+   - Les statistiques d'incantation des sorts par niveau (de Lvl 1 à 9).
+5. Vous pouvez cliquer sur **« Jouer avec ce groupe dans l'arène »** pour importer directement le groupe résultant de la simulation dans votre partie interactive !
+
+---
+
+## 🗃️ Fichiers de Données & Extensibilité
+
+Toutes les règles et données du jeu sont déclarées dans le dossier `data/` (et synchronisées dans `src/data/`) sous forme de fichiers JSON standards :
+
+- `heroes.json` : Modèles de héros de départ (caractéristiques, classe, équipement).
+- `monsters.json` : Bestiaire complet avec dés de vie, CA et dés de dégâts.
+- `classes.json` : Définitions des classes (dé de vie, slots de base, caractéristique de sort).
+- `races.json` : Races et modificateurs raciaux.
+- `spells.json` : Catalogue complet de sorts par classe avec niveaux, effets et sauvegardes.
+- `weapons.json`, `armors.json`, `shields.json` : Liste des équipements et propriétés chiffrées.
+- `magic_items.json` & `magic_config.json` : Objets magiques, raretés et coefficients de drop.
+
+Vous pouvez facilement étendre le jeu en ajoutant de nouveaux monstres, armes ou sorts directement dans ces fichiers JSON sans modifier le code source du moteur.
+
+---
+
+## 🚀 Lancement & Développement Local
+
+Pour exécuter le projet en local :
+
+```bash
+# 1. Installation des dépendances
+npm install
+
+# 2. Démarrage du serveur de développement (port 3000)
+npm run dev
+
+# 3. Validation TypeScript & Linting
+npm run lint
+
+# 4. Compilation de production
+npm run build
+```
+
+Accédez ensuite à l'application dans votre navigateur sur `http://localhost:3000`.
