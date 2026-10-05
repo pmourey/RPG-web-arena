@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Combatant, HeroData, InventoryItem, MonsterData } from '../types/game';
 import {
   equipItem,
@@ -14,7 +14,25 @@ import {
   useItem,
 } from '../engine/character';
 import { getModifiers, getProficiencyBonus } from '../engine/dice';
-import { X, Shield, Sword, Sparkles, Package, ArrowRightLeft, Trash2, CheckCircle2 } from 'lucide-react';
+import {
+  canHeroLevelUp,
+  getDnd5eSpellPoints,
+  getXpForNextLevel,
+  sortSpellsByLevel,
+  SPELL_LEVEL_POINT_COST,
+} from '../engine/rules';
+import {
+  X,
+  Shield,
+  Sword,
+  Sparkles,
+  Package,
+  ArrowRightLeft,
+  Trash2,
+  CheckCircle2,
+  Search,
+  Filter,
+} from 'lucide-react';
 
 interface CharacterSheetModalProps {
   character: Combatant | null;
@@ -44,11 +62,43 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
   );
   const [statusMsg, setStatusMsg] = useState<string>('');
 
+  // Spells search and level filter state
+  const [spellSearch, setSpellSearch] = useState<string>('');
+  const [spellLevelFilter, setSpellLevelFilter] = useState<string>('all');
+
   const abilities = hero ? hero.abilities : monster!.abilities;
   const mods = getModifiers(abilities);
   const ac = getArmorClass(character);
   const atkBonus = getAttackBonus(character);
   const prof = getProficiencyBonus(character.level);
+
+  // Available spell levels for this hero
+  const availableLevels = useMemo(() => {
+    if (!hero) return [];
+    const set = new Set<number>(hero.spells.map((s) => s.level));
+    return Array.from(set).sort((a, b) => a - b);
+  }, [hero]);
+
+  // Filtered spells list by search query and level, sorted by level
+  const filteredSpells = useMemo(() => {
+    if (!hero) return [];
+    const matched = hero.spells.filter((s) => {
+      // Level filter
+      if (spellLevelFilter !== 'all') {
+        if (s.level !== Number(spellLevelFilter)) return false;
+      }
+      // Text search
+      if (spellSearch.trim() !== '') {
+        const q = spellSearch.toLowerCase().trim();
+        const matchName = s.name.toLowerCase().includes(q);
+        const matchDesc = (s.description || '').toLowerCase().includes(q);
+        const matchEffect = (s.effect || '').toLowerCase().includes(q);
+        if (!matchName && !matchDesc && !matchEffect) return false;
+      }
+      return true;
+    });
+    return sortSpellsByLevel(matched);
+  }, [hero, spellSearch, spellLevelFilter]);
 
   const selectedItem = hero && selectedItemIndex !== null ? hero.inventory[selectedItemIndex] : null;
 
@@ -121,7 +171,7 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-xs">
       <div className="bg-stone-900 border border-stone-700 rounded-2xl w-full max-w-2xl max-h-[94vh] sm:max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="p-3 sm:p-4 border-b border-stone-800 flex items-center justify-between bg-stone-950/60">
+        <div className="p-3 sm:p-4 border-b border-stone-800 flex items-center justify-between bg-stone-950/60 shrink-0">
           <div className="min-w-0 pr-2">
             <h2 className="text-base sm:text-lg font-bold text-stone-100 flex items-center gap-2 truncate">
               <span className="truncate">{character.name}</span>
@@ -143,10 +193,10 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-stone-800 bg-stone-950/30 px-2 sm:px-4 overflow-x-auto whitespace-nowrap scrollbar-none touch-pan-x">
+        <div className="flex border-b border-stone-800 bg-stone-950/30 px-2 sm:px-4 overflow-x-auto whitespace-nowrap scrollbar-none touch-pan-x shrink-0">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`py-2 sm:py-2.5 px-3 sm:px-4 text-xs font-semibold border-b-2 transition-colors shrink-0 ${
+            className={`py-2.5 sm:py-3 px-3 sm:px-4 text-xs font-semibold border-b-2 -mb-px transition-colors shrink-0 ${
               activeTab === 'overview'
                 ? 'border-amber-500 text-amber-400'
                 : 'border-transparent text-stone-400 hover:text-stone-200'
@@ -158,7 +208,7 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
             <>
               <button
                 onClick={() => setActiveTab('inventory')}
-                className={`py-2 sm:py-2.5 px-3 sm:px-4 text-xs font-semibold border-b-2 transition-colors shrink-0 flex items-center gap-1.5 ${
+                className={`py-2.5 sm:py-3 px-3 sm:px-4 text-xs font-semibold border-b-2 -mb-px transition-colors shrink-0 flex items-center gap-1.5 ${
                   activeTab === 'inventory'
                     ? 'border-amber-500 text-amber-400'
                     : 'border-transparent text-stone-400 hover:text-stone-200'
@@ -169,7 +219,7 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
               </button>
               <button
                 onClick={() => setActiveTab('spells')}
-                className={`py-2 sm:py-2.5 px-3 sm:px-4 text-xs font-semibold border-b-2 transition-colors shrink-0 flex items-center gap-1.5 ${
+                className={`py-2.5 sm:py-3 px-3 sm:px-4 text-xs font-semibold border-b-2 -mb-px transition-colors shrink-0 flex items-center gap-1.5 ${
                   activeTab === 'spells'
                     ? 'border-amber-500 text-amber-400'
                     : 'border-transparent text-stone-400 hover:text-stone-200'
@@ -183,7 +233,7 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="p-3 sm:p-4 overflow-y-auto flex-1 text-sm space-y-4">
+        <div className="p-3 sm:p-4 overflow-y-auto flex-1 min-h-0 text-sm space-y-4 combat-log-scrollbar">
           {statusMsg && (
             <div className="p-2 sm:p-2.5 rounded-lg bg-amber-950/40 border border-amber-800/60 text-amber-200 text-xs flex items-center justify-between">
               <span>{statusMsg}</span>
@@ -311,10 +361,30 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
 
               {/* XP and Gold */}
               {isHero && hero && (
-                <div className="flex flex-wrap gap-2 sm:gap-4 pt-2 border-t border-stone-800/80 text-[11px] sm:text-xs text-stone-400">
-                  <span>💰 Or: <strong className="text-amber-400">{hero.gold} gp</strong></span>
-                  <span>⭐ XP: <strong className="text-stone-200">{hero.xp}</strong> (Suivant: {hero.level * 500} XP)</span>
-                  <span>📍 Position: <strong className="text-stone-200">{hero.position === 'front' ? 'Front-line' : 'Back-line'}</strong></span>
+                <div className="pt-2 border-t border-stone-800/80 space-y-1.5 text-[11px] sm:text-xs text-stone-400">
+                  <div className="flex flex-wrap gap-2 sm:gap-4">
+                    <span>💰 Or: <strong className="text-amber-400">{hero.gold} gp</strong></span>
+                    <span>
+                      ⭐ XP: <strong className="text-stone-200">{hero.xp}</strong> / {getXpForNextLevel(hero.level)} XP
+                      {hero.level >= 20 ? ' (Niveau Max)' : ` (Niveau ${hero.level + 1})`}
+                    </span>
+                    <span>
+                      📍 Position:{' '}
+                      <strong className="text-stone-200">
+                        {hero.position === 'front'
+                          ? 'Ligne Avant (Front)'
+                          : hero.position === 'middle'
+                          ? 'Ligne Médiane (Milieu)'
+                          : 'Ligne Arrière (Back)'}
+                      </strong>
+                    </span>
+                  </div>
+                  {canHeroLevelUp(hero) && (
+                    <div className="p-2 rounded-lg bg-amber-950/40 border border-amber-500/40 text-amber-300 font-semibold flex items-center gap-1.5 animate-pulse">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Ce personnage a accumulé assez d'XP pour monter au Niveau {hero.level + 1} ! Prenez un <strong>Repos complet</strong> pour finaliser la montée de niveau.</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -456,35 +526,149 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
                 <span>DD Sauvegarde: <strong className="text-amber-400">{getDCValue(hero)}</strong></span>
               </div>
 
-              {/* Spell Slots display */}
-              <div className="p-2.5 sm:p-3 bg-stone-950/60 rounded-xl border border-stone-800">
-                <div className="text-[10px] sm:text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-1.5">Emplacements de sorts</div>
-                <div className="grid grid-cols-5 sm:grid-cols-9 gap-1 sm:gap-1.5 text-center">
-                  {hero.max_spell_slots.slice(0, 9).map((max, idx) => (
-                    <div
-                      key={idx}
-                      className={`p-1 sm:p-1.5 rounded-lg border text-xs ${
-                        max > 0
-                          ? 'bg-stone-800/80 border-stone-700 text-stone-200'
-                          : 'bg-stone-900/30 border-stone-800/40 text-stone-600'
-                      }`}
-                    >
-                      <div className="text-[9px] sm:text-[10px] text-stone-400 font-bold">L{idx + 1}</div>
-                      <div className="font-semibold text-[11px] sm:text-xs text-amber-400">
-                        {hero.current_spell_slots[idx]}/{max}
+              {/* Spell Slots & Spell Points display */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <div className="md:col-span-2 p-2.5 sm:p-3 bg-stone-950/60 rounded-xl border border-stone-800">
+                  <div className="text-[10px] sm:text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                    <span>Emplacements de sorts (D&D 5e)</span>
+                    <span className="text-[9.5px] text-amber-400/90 font-mono">
+                      {hero.current_spell_slots.reduce((a, b) => a + b, 0)} disponibles
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-5 sm:grid-cols-9 gap-1 sm:gap-1.5 text-center">
+                    {hero.max_spell_slots.slice(0, 9).map((max, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-1 sm:p-1.5 rounded-lg border text-xs ${
+                          max > 0
+                            ? 'bg-stone-800/80 border-stone-700 text-stone-200'
+                            : 'bg-stone-900/30 border-stone-800/40 text-stone-600'
+                        }`}
+                      >
+                        <div className="text-[9px] sm:text-[10px] text-stone-400 font-bold">L{idx + 1}</div>
+                        <div className="font-semibold text-[11px] sm:text-xs text-amber-400">
+                          {hero.current_spell_slots[idx]}/{max}
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Spell Points Variant (DMG p. 288) */}
+                <div className="p-2.5 sm:p-3 bg-stone-950/60 rounded-xl border border-stone-800 flex flex-col justify-between">
+                  <div>
+                    <div className="text-[10px] sm:text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-1 flex items-center justify-between">
+                      <span>Points de Sorts</span>
+                      <span className="text-[8.5px] px-1 py-0.2 rounded bg-stone-800 text-stone-300 border border-stone-700">
+                        DMG p.288
+                      </span>
                     </div>
-                  ))}
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-lg font-black text-amber-400 font-mono">
+                        {getDnd5eSpellPoints(hero.class_type, hero.level)}
+                      </span>
+                      <span className="text-[10px] text-stone-400">points max (Niv.{hero.level})</span>
+                    </div>
+                  </div>
+                  <div className="text-[9px] text-stone-400 mt-1 pt-1 border-t border-stone-800/80 flex justify-between flex-wrap gap-1 font-mono">
+                    <span>L1: 2pts</span>
+                    <span>L2: 3pts</span>
+                    <span>L3: 5pts</span>
+                    <span>L4: 6pts</span>
+                    <span>L5: 7pts</span>
+                  </div>
                 </div>
               </div>
 
+              {/* Filter and Search Controls for Spells */}
+              {hero.spells.length > 0 && (
+                <div className="flex flex-col sm:flex-row gap-2 bg-stone-950/50 p-2.5 rounded-xl border border-stone-800">
+                  {/* Search input */}
+                  <div className="relative flex-1">
+                    <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={spellSearch}
+                      onChange={(e) => setSpellSearch(e.target.value)}
+                      placeholder="Rechercher par nom ou effet..."
+                      className="w-full pl-8 pr-7 py-1.5 text-xs bg-stone-900 border border-stone-700/80 rounded-lg text-stone-200 placeholder-stone-500 focus:outline-none focus:border-amber-500"
+                    />
+                    {spellSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setSpellSearch('')}
+                        aria-label="Effacer la recherche"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-200 p-0.5"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Level dropdown filter */}
+                  <div className="flex items-center gap-1.5">
+                    <Filter className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                    <select
+                      value={spellLevelFilter}
+                      onChange={(e) => setSpellLevelFilter(e.target.value)}
+                      className="px-2.5 py-1.5 text-xs bg-stone-900 border border-stone-700/80 rounded-lg text-stone-200 focus:outline-none focus:border-amber-500 font-medium"
+                    >
+                      <option value="all">Tous les niveaux ({hero.spells.length})</option>
+                      {availableLevels.map((lvl) => {
+                        const count = hero.spells.filter((s) => s.level === lvl).length;
+                        return (
+                          <option key={lvl} value={lvl}>
+                            Niveau {lvl} ({count})
+                          </option>
+                        );
+                      })}
+                    </select>
+
+                    {(spellSearch !== '' || spellLevelFilter !== 'all') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSpellSearch('');
+                          setSpellLevelFilter('all');
+                        }}
+                        className="px-2 py-1.5 text-xs text-amber-400 hover:text-amber-300 font-semibold shrink-0"
+                      >
+                        Réinitialiser
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Known Spells List */}
               <div className="space-y-2">
-                <div className="text-xs font-semibold text-stone-400 uppercase tracking-wider">Sorts Connus</div>
+                <div className="flex items-center justify-between text-xs font-semibold text-stone-400 uppercase tracking-wider">
+                  <span>Sorts Connus</span>
+                  {hero.spells.length > 0 && (
+                    <span className="text-[11px] font-mono text-stone-400 lowercase">
+                      {filteredSpells.length} sur {hero.spells.length} {filteredSpells.length > 1 ? 'sorts affichés' : 'sort affiché'}
+                    </span>
+                  )}
+                </div>
+
                 {hero.spells.length === 0 ? (
                   <div className="p-4 text-center text-stone-500 text-xs">Aucun sort connu.</div>
+                ) : filteredSpells.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-stone-400 bg-stone-950/40 rounded-xl border border-stone-800 space-y-2">
+                    <p>Aucun sort ne correspond à vos critères de recherche.</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSpellSearch('');
+                        setSpellLevelFilter('all');
+                      }}
+                      className="px-3 py-1 text-xs font-semibold bg-stone-800 hover:bg-stone-700 text-amber-400 rounded-lg border border-stone-700 transition-colors"
+                    >
+                      Réinitialiser les filtres
+                    </button>
+                  </div>
                 ) : (
-                  hero.spells.map((s, idx) => (
+                  filteredSpells.map((s, idx) => (
                     <div key={idx} className="p-2.5 sm:p-3 bg-stone-800/40 border border-stone-700/60 rounded-xl space-y-1">
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-xs sm:text-sm text-stone-100 flex items-center gap-1.5">
@@ -510,7 +694,7 @@ export const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-2.5 sm:p-3 bg-stone-950 border-t border-stone-800 flex justify-end">
+        <div className="p-2.5 sm:p-3 bg-stone-950 border-t border-stone-800 flex justify-end shrink-0">
           <button
             onClick={onClose}
             className="w-full sm:w-auto px-4 py-2 rounded-lg text-xs font-semibold bg-stone-800 hover:bg-stone-700 text-stone-200 transition-colors"

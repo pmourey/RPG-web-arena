@@ -23,8 +23,27 @@ import {
 } from '../types/game';
 import { equipItem } from './character';
 import { getAbilityModifier, rollDamageDice, rollDie } from './dice';
+import {
+  FULL_CASTER_CLASSES,
+  HALF_CASTER_CLASSES,
+  assignFormationPositions,
+  getDnd5eSpellSlots,
+  getMonsterXp,
+  sortSpellsByLevel,
+} from './rules';
 
 const MELEE_CLASSES = new Set(['Fighter', 'Paladin', 'Ranger', 'Rogue']);
+
+export interface LevelUpResult {
+  hero: HeroData;
+  oldLevel: number;
+  newLevel: number;
+  hpGained: number;
+  oldMaxHp: number;
+  newMaxHp: number;
+  newSpells: SpellData[];
+  newSpellSlots: number[];
+}
 
 export function loadAllSpells(): SpellData[] {
   const result: SpellData[] = [];
@@ -92,20 +111,23 @@ export function getLoadedGameData() {
   };
 }
 
-export function levelUpHero(char: HeroData, allSpells: SpellData[]): void {
+export function levelUpHero(char: HeroData, allSpells: SpellData[]): LevelUpResult {
+  const oldLevel = char.level;
   char.level += 1;
   const conMod = getAbilityModifier(char.abilities.constitution);
-  const hpGained = rollDie(char.hit_dice || 8) + Math.max(0, conMod);
-  const addHp = Math.max(1, hpGained);
-  char.max_hp += addHp;
-  char.hp += addHp;
+  const hitDie = char.hit_dice || 8;
+  const hpRoll = rollDie(hitDie);
+  const hpGained = Math.max(1, hpRoll + Math.max(0, conMod));
+  const oldMaxHp = char.max_hp;
+  char.max_hp += hpGained;
+  char.hp += hpGained;
 
-  const maxSpellLevel = Math.max(1, Math.floor(Math.min(20, char.level + 1) / 2));
-  for (let i = 0; i < Math.min(maxSpellLevel, char.max_spell_slots.length); i++) {
-    char.max_spell_slots[i] = Math.min(char.max_spell_slots[i] + rollDie(3), 9);
-    char.current_spell_slots[i] = char.max_spell_slots[i];
-  }
+  // D&D 5e exact spell slots progression according to class & level
+  const newSlots = getDnd5eSpellSlots(char.class_type, char.level);
+  char.max_spell_slots = newSlots;
+  char.current_spell_slots = [...newSlots];
 
+  // Multi-attack progression
   if (['Fighter', 'Ranger', 'Paladin'].includes(char.class_type)) {
     let extra = 0;
     if (char.level >= 5) extra += 1;
@@ -116,23 +138,53 @@ export function levelUpHero(char: HeroData, allSpells: SpellData[]): void {
     char.multi_attack = 1 + extra;
   }
 
+  // Max accessible spell level in D&D 5e
+  const isFull = FULL_CASTER_CLASSES.has(char.class_type);
+  const isHalf = HALF_CASTER_CLASSES.has(char.class_type);
+  const maxAccessibleSpellLevel = isFull
+    ? Math.min(9, Math.ceil(char.level / 2))
+    : isHalf
+    ? Math.min(5, Math.ceil(char.level / 4))
+    : 0;
+
   // Learn new spells if applicable
-  const newSpells = allSpells.filter(
-    (s) =>
-      s.class_type === char.class_type &&
-      !char.spells.some((cs) => cs.name === s.name) &&
-      s.level <= maxSpellLevel
-  );
-  if (newSpells.length > 0) {
-    let countToLearn = 0;
-    if (char.class_type === 'Wizard') countToLearn = Math.min(2, newSpells.length);
-    else if (['Sorcerer', 'Bard', 'Ranger', 'Cleric', 'Druid'].includes(char.class_type)) {
-      countToLearn = Math.min(1, newSpells.length);
+  const newlyLearned: SpellData[] = [];
+  if (maxAccessibleSpellLevel > 0) {
+    const candidateSpells = allSpells.filter(
+      (s) =>
+        s.class_type.toLowerCase() === char.class_type.toLowerCase() &&
+        !char.spells.some((cs) => cs.name.toLowerCase() === s.name.toLowerCase()) &&
+        s.level <= maxAccessibleSpellLevel
+    );
+
+    if (candidateSpells.length > 0) {
+      let countToLearn = 1;
+      if (char.class_type === 'Wizard') countToLearn = Math.min(2, candidateSpells.length);
+      else if (['Sorcerer', 'Bard', 'Ranger', 'Cleric', 'Druid', 'Paladin'].includes(char.class_type)) {
+        countToLearn = Math.min(1, candidateSpells.length);
+      }
+
+      // Prioritize higher-level newly unlocked spells
+      const sortedCandidates = [...candidateSpells].sort((a, b) => b.level - a.level || 0.5 - Math.random());
+      const learned = sortedCandidates.slice(0, countToLearn);
+      char.spells.push(...learned);
+      newlyLearned.push(...learned);
     }
-    // Pick random subset
-    const shuffled = [...newSpells].sort(() => 0.5 - Math.random());
-    char.spells.push(...shuffled.slice(0, countToLearn));
   }
+
+  // Ensure spells are ALWAYS kept sorted by level (Niv 1, 2, 3...)
+  char.spells = sortSpellsByLevel(char.spells);
+
+  return {
+    hero: char,
+    oldLevel,
+    newLevel: char.level,
+    hpGained,
+    oldMaxHp,
+    newMaxHp: char.max_hp,
+    newSpells: newlyLearned,
+    newSpellSlots: char.max_spell_slots,
+  };
 }
 
 export function buildPartyFromHeroes(
@@ -209,6 +261,8 @@ export function buildPartyFromHeroes(
       else if (h.level >= 5) multiAttack = 2;
     }
 
+    const initialSlots = getDnd5eSpellSlots(classStr, h.level || 1);
+
     const hero: HeroData = {
       id: h.id || idx + 1,
       name: h.name || 'Hero',
@@ -231,8 +285,8 @@ export function buildPartyFromHeroes(
       shield,
       spellcasting_ability: spellcastingAbility,
       spells: [],
-      max_spell_slots: new Array(10).fill(0),
-      current_spell_slots: new Array(10).fill(0),
+      max_spell_slots: initialSlots,
+      current_spell_slots: [...initialSlots],
       hit_dice: hitDice,
       multi_attack: multiAttack,
       position: isFront ? 'front' : 'back',
@@ -240,25 +294,98 @@ export function buildPartyFromHeroes(
 
     if (spellcastingAbility) {
       const allowed = allSpells.filter(
-        (s) => s.class_type === classStr && s.level <= Math.max(1, Math.floor(partyLevel / 2))
+        (s) => s.class_type.toLowerCase() === classStr.toLowerCase() && s.level <= Math.max(1, Math.floor(partyLevel / 2))
       );
       // Give 1-2 starting spells
       const picked = [...allowed].sort(() => 0.5 - Math.random()).slice(0, Math.min(2, allowed.length));
-      hero.spells = picked;
-      const baseSlots = classInfo.base_spell_slots || 1;
-      hero.max_spell_slots[0] = baseSlots;
-      hero.current_spell_slots[0] = baseSlots;
+      hero.spells = sortSpellsByLevel(picked);
     }
 
     // Level up hero to partyLevel
-    for (let lvl = 1; lvl < partyLevel; lvl++) {
+    for (let lvl = (h.level || 1); lvl < partyLevel; lvl++) {
       levelUpHero(hero, allSpells);
     }
 
     return hero;
   });
 
-  return party;
+  return assignFormationPositions(party);
+}
+
+const AGILE_MONSTER_NAMES = new Set([
+  'goblin',
+  'kobold',
+  'giant rat',
+  'skeleton',
+  'wolf',
+  'giant spider',
+  'bandit',
+  'scout',
+  'bugbear',
+  'harpy',
+  'specter',
+  'shadow',
+  'ghoul',
+  'assassin',
+  'thief',
+]);
+
+const BRUTE_MONSTER_NAMES = new Set([
+  'orc',
+  'ogre',
+  'troll',
+  'minotaur',
+  'hill giant',
+  'stone giant',
+  'frost giant',
+  'fire giant',
+  'owlbear',
+]);
+
+const SLOW_MONSTER_NAMES = new Set([
+  'zombie',
+  'clay golem',
+  'iron golem',
+  'stone golem',
+  'mummy',
+]);
+
+export function getMonsterAbilities(monsterName: string, level: number): AbilitiesData {
+  const lower = (monsterName || '').toLowerCase();
+
+  let dex = 12 + Math.min(4, Math.floor(level / 2));
+  let str = 10 + level;
+  let con = 10 + level;
+  let int = 8;
+  let wis = 10;
+  let cha = 8;
+
+  if (Array.from(AGILE_MONSTER_NAMES).some((name) => lower.includes(name))) {
+    dex = 14 + Math.min(4, Math.floor(level / 2)); // 14 to 18 (+2 to +4)
+    str = 8 + level;
+  } else if (Array.from(BRUTE_MONSTER_NAMES).some((name) => lower.includes(name))) {
+    str = 14 + level * 2;
+    dex = 12; // +1
+    con = 14 + level;
+  } else if (Array.from(SLOW_MONSTER_NAMES).some((name) => lower.includes(name))) {
+    dex = 8; // -1
+    con = 14 + level;
+    str = 12 + level;
+  } else if (lower.includes('dragon') || lower.includes('lich') || lower.includes('demon')) {
+    str = 16 + level;
+    dex = 12 + Math.min(4, Math.floor(level / 2));
+    int = 14 + level;
+    cha = 14 + level;
+  }
+
+  return {
+    strength: str,
+    intelligence: int,
+    dexterity: dex,
+    wisdom: wis,
+    charisma: cha,
+    constitution: con,
+  };
 }
 
 export function createSampleMonsters(
@@ -272,14 +399,7 @@ export function createSampleMonsters(
     const type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
     const hp = rollDamageDice(type.hit_dice);
     const level = type.hit_dice.num_dice;
-    const abilities: AbilitiesData = {
-      strength: 8 + level,
-      intelligence: 8,
-      dexterity: 10 + level,
-      wisdom: 10,
-      charisma: 10,
-      constitution: 10 + level,
-    };
+    const abilities = getMonsterAbilities(type.name, level);
 
     monsters.push({
       id: i + 1,
@@ -288,7 +408,7 @@ export function createSampleMonsters(
       hp: Math.max(1, hp),
       max_hp: Math.max(1, hp),
       gold: rollDie(10),
-      xp: (rollDie(11) + 4) * (level + 1),
+      xp: getMonsterXp(level, type.name),
       condition: 'ok',
       is_blessed: false,
       abilities,

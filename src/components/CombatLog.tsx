@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ScrollText, Trash2, Copy, Check } from 'lucide-react';
+import { ScrollText, Trash2, Copy, Check, PanelRightClose } from 'lucide-react';
 
 interface CombatLogProps {
   logs: string[];
   onClear: () => void;
+  onClose?: () => void;
 }
 
-export const CombatLog: React.FC<CombatLogProps> = ({ logs, onClear }) => {
+export const CombatLog: React.FC<CombatLogProps> = ({ logs, onClear, onClose }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
@@ -52,9 +53,9 @@ export const CombatLog: React.FC<CombatLogProps> = ({ logs, onClear }) => {
   };
 
   return (
-    <div className="bg-stone-900 border border-stone-800 rounded-2xl flex flex-col h-full shadow-xl overflow-hidden">
+    <div className="bg-stone-900 border border-stone-800 rounded-2xl flex flex-col h-full shadow-xl overflow-hidden min-h-0">
       {/* Header */}
-      <div className="p-3 border-b border-stone-800 flex items-center justify-between bg-stone-950/60">
+      <div className="p-3 border-b border-stone-800 flex items-center justify-between bg-stone-950/60 shrink-0">
         <div className="flex items-center gap-2">
           <ScrollText className="w-4 h-4 text-amber-500" />
           <h3 className="text-xs font-bold uppercase tracking-wider text-stone-200">
@@ -91,13 +92,24 @@ export const CombatLog: React.FC<CombatLogProps> = ({ logs, onClear }) => {
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              title="Masquer le journal de combat"
+              aria-label="Masquer le journal"
+              className="p-1 rounded text-stone-400 hover:text-amber-400 hover:bg-stone-800 transition-colors ml-0.5"
+            >
+              <PanelRightClose className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Log lines */}
+      {/* Log lines with visible scrollbar */}
       <div
         ref={scrollRef}
-        className="p-3 overflow-y-auto flex-1 font-mono text-[11px] leading-relaxed space-y-1 bg-stone-950/40 divide-y divide-stone-900/60"
+        className="p-3 overflow-y-scroll combat-log-scrollbar flex-1 min-h-0 font-mono text-[11px] leading-relaxed space-y-1 bg-stone-950/40 divide-y divide-stone-900/60"
       >
         {logs.length === 0 ? (
           <div className="p-8 text-center text-stone-500 text-xs">

@@ -21,19 +21,47 @@ import {
   isDead,
   receiveDamage,
 } from './character';
-import { rollDamageDice, rollDie } from './dice';
+import { getAbilityModifier, rollDamageDice, rollDie } from './dice';
 import { isBeneficial, resolveSpellEffect } from './effects';
 
 export function calculateInitiative(party: HeroData[], monsters: MonsterData[]): InitiativeEntry[] {
   const aliveHeroes = party.filter((h) => !isDead(h));
   const aliveMonsters = monsters.filter((m) => !isDead(m));
 
-  const list: InitiativeEntry[] = [
-    ...aliveHeroes.map((h) => ({ combatant: h, initiative: getInitiative(h) })),
-    ...aliveMonsters.map((m) => ({ combatant: m, initiative: getInitiative(m) })),
-  ];
+  const list: InitiativeEntry[] = [];
 
-  list.sort((a, b) => b.initiative - a.initiative);
+  for (const h of aliveHeroes) {
+    const dexMod = getAbilityModifier(h.abilities.dexterity);
+    const d20 = rollDie(20);
+    const penalty = h.effects.some((e) => e.kind === 'restrained') ? 2 : 0;
+    const initiative = d20 + dexMod - penalty;
+    list.push({ combatant: h, initiative, roll: d20, dexMod });
+  }
+
+  for (const m of aliveMonsters) {
+    const dexMod = getAbilityModifier(m.abilities.dexterity);
+    const d20 = rollDie(20);
+    const penalty = m.effects.some((e) => e.kind === 'restrained') ? 2 : 0;
+    const initiative = d20 + dexMod - penalty;
+    list.push({ combatant: m, initiative, roll: d20, dexMod });
+  }
+
+  // D&D 5e Sorting:
+  // 1. Highest total initiative
+  // 2. Tie-break: highest Dexterity modifier
+  // 3. Fair coin-flip / random tie break (never bias towards heroes)
+  list.sort((a, b) => {
+    if (b.initiative !== a.initiative) {
+      return b.initiative - a.initiative;
+    }
+    const bDex = b.dexMod ?? getAbilityModifier(b.combatant.abilities.dexterity);
+    const aDex = a.dexMod ?? getAbilityModifier(a.combatant.abilities.dexterity);
+    if (bDex !== aDex) {
+      return bDex - aDex;
+    }
+    return Math.random() - 0.5;
+  });
+
   return list;
 }
 

@@ -115,7 +115,7 @@ export interface HeroData extends CharacterBase {
   current_spell_slots: number[];
   hit_dice: number;
   multi_attack: number;
-  position: 'front' | 'back';
+  position: 'front' | 'middle' | 'back';
 }
 
 export interface MonsterTypeData {
@@ -141,6 +141,8 @@ export type Combatant = HeroData | MonsterData;
 export interface InitiativeEntry {
   combatant: Combatant;
   initiative: number;
+  roll?: number;
+  dexMod?: number;
 }
 
 export interface GameSaveState {

@@ -184,26 +184,44 @@ $$\text{Modificateur} = \lfloor \frac{\text{Valeur} - 10}{2} \rfloor$$
 
 ---
 
-### 2. Déroulement d'un Combat
+### 2. Déroulement d'un Combat & Système d'Initiative
 
-1. Cliquez sur **🐉 Nouvelle Rencontre** pour générer des monstres dont le niveau s'adapte au niveau moyen de votre groupe.
-2. Observez la **bannière de tour** : elle indique qui doit agir.
-   - **Tour d'un monstre** : L'intelligence artificielle résout automatiquement l'attaque du monstre (qui vise en priorité les cibles de première ligne).
+1. Cliquez sur **🐉 Nouvelle Rencontre** pour générer des monstres adaptés au niveau du groupe.
+2. **Calcul de l'initiative (Règles D&D 5e)** :
+   - Chaque combattant (héros et monstres) lance un dé à 20 faces ($d20$) et ajoute son modificateur de Dextérité (plus d'éventuels malus d'entrave).
+   - Les monstres possèdent leurs caractéristiques propres (ex : monstres agiles comme les Gobelins, Kobolds ou Rats géants disposant d'un bonus de Dextérité $+2$ à $+4$).
+   - En cas d'égalité d'initiative, le départage se fait par la Dextérité la plus élevée, puis par tirage neutre équitable ($50/50$).
+   - L'ensemble des jets d'initiative et l'ordre complet sont affichés en tête du journal de combat dès le début de chaque round.
+3. Observez la **bannière de tour** : elle indique qui doit agir ainsi que son score d'initiative.
+   - **Tour d'un monstre** : L'intelligence artificielle résout automatiquement l'attaque du monstre (qui vise en priorité les cibles de première ligne). Si un monstre a la plus haute initiative, il attaque immédiatement en premier !
    - **Tour d'un de vos héros** : La carte du héros s'illumine en **ambre**. C'est à vous de jouer !
-3. **Sélectionner une cible** : Cliquez sur n'importe quelle carte de monstre ou d'allié. La cible active est encadrée d'une **bordure bleue**.
-4. **Choisir une action** :
+4. **Sélectionner une cible** : Cliquez sur n'importe quelle carte de monstre ou d'allié. La cible active est encadrée d'une **bordure bleue**.
+5. **Choisir une action** :
    - Cliquez sur **⚔️ Melee Attack** pour attaquer le monstre ciblé avec votre arme.
    - Ou cliquez sur l'un des boutons de sorts disponibles dans le panneau d'action.
-5. Une fois l'action effectuée, le tour passe au combattant suivant dans l'ordre d'initiative jusqu'à la victoire ou la défaite.
+6. Une fois l'action effectuée, le tour passe au combattant suivant dans l'ordre d'initiative jusqu'à la victoire ou la défaite.
+7. **Largeur d'Écran Personnalisable & Plein Écran** : Vous pouvez régler à tout moment la largeur d'affichage via le menu **Affichage** dans l'en-tête (présets *Compact 1080px*, *Standard 1240px*, *Large 1440px*, *Plein 100%* ou curseur continu de 960px à 1800px). Le bouton **Plein écran** (`F11` / `Échap`) permet également de passer en immersion sans bordures.
+8. **Contrôle et Limites de Taille des Cartes (Carrées)** : L'utilisateur peut personnaliser la taille des cartes de combattants (présets *Compacte 102px*, *Équilibrée 112px*, *Confort 126px* ou curseur de 96px à 138px). Les critères sont rigoureusement bornés :
+   - **Limite basse (96px)** : garantit que toutes les informations de jeu minimales (nom, niveau, CA, barre et points de vie, état, sorts/attaques multiples) restent parfaitement lisibles sans débordement.
+   - **Limite haute (138px)** : préserve la forme carrée sans introduire de grands espaces vides inutiles et évite de pousser le bas de l'arène hors de l'écran.
+9. **Maintien des 2 Rangées de Héros & Espacement Horizontal Resserré (Zéro Scroll)** : Le groupe conserve scrupuleusement ses 2 rangées distinctes (**⚔️ Première Ligne** et **🏹 Arrière-Garde**). L'espacement horizontal entre les cartes a été resserré pour regrouper harmonieusement les 3 héros de chaque rangée en formation tactique compacte. La hauteur globale de l'arène (~580px) est spécialement optimisée pour que l'ensemble des monstres, de la bannière, des actions et des 6 héros soit visible simultanément **sans nécessiter aucun défilement vertical** sur ordinateur et tablette.
+10. **Masquage du Journal de Combat (Écran Standard & Tablette)** : Vous pouvez masquer ou réafficher le journal d'un simple clic (bouton dédié dans l'en-tête, menu Affichage, ou croix du journal) en mode bureau comme en mode Tablette. Lorsqu'il est masqué, l'arène s'étend sur 100% de la largeur disponible et un bandeau de rappel affiche le dernier événement avec un bouton d'accès rapide.
+11. **Séparateur Redimensionnable** : Lorsque le journal est visible sur grand écran, la barre verticale centrale permet d'ajuster le partage d'espace par glisser-déposer (double-clic pour réinitialiser à 62%).
 
 ---
 
-### 3. Utilisation des Sorts
+### 3. Utilisation des Sorts & Curseur Automatique
 
+- **Classement des sorts par niveau & Curseur par défaut** :
+  - Les sorts sont désormais **systématiquement ordonnés par niveau** (et par ordre alphabétique au sein d'un même niveau).
+  - Au début du tour de chaque héros lanceur de sorts, le **curseur se place automatiquement sur le sort disponible de plus haut niveau** (ayant encore des emplacements utilisables) avec un badge distinctif `MAX` et un halo lumineux.
+  - La rangée de sorts défile automatiquement en douceur (**auto-scroll**) pour centrer ce sort dans le champ de vision, **évitant au joueur d'avoir à scroller vers la droite** à chaque tour !
+  - Un bouton de bascule rapide `[Niveau ▲ 1➔9] / [Niveau ▼ 9➔1]` permet également d'inverser l'ordre d'affichage pour afficher immédiatement les sorts les plus puissants sur l'extrême gauche.
 - Les sorts bénéfiques (soins, boucliers, résurrections) sont signalés par une icône **💚** et ciblent vos **alliés**.
 - Les sorts offensifs (boules de feu, éclairs, projectiles magiques) sont signalés par une icône **🔥** et ciblent les **monstres**.
-- Chaque bouton de sort affiche le **Niveau du sort** ainsi que le ratio de fentes restantes, par ex. `(2/3)` signifie 2 fentes disponibles sur un maximum de 3 pour ce niveau.
+- Chaque bouton de sort affiche le **Niveau du sort** ainsi que le ratio d'emplacements restants, par ex. `(2/3)` signifie 2 emplacements disponibles sur un maximum de 3 pour ce niveau.
 - Les sorts multi-cibles (*AOE*) s'appliquent automatiquement à l'ensemble des cibles valides sans nécessiter de sélection individuelle.
+- **Recherche & Filtrage des sorts** : Dans la fiche de personnage (onglet *Sorts*), vous disposez d'une barre de recherche par nom/effet et d'un menu déroulant de filtrage par niveau (ex: Niveau 1, Niveau 2...) avec compteur dynamique et réinitialisation rapide pour naviguer aisément dans les grimoires étendus.
 
 ---
 
@@ -223,16 +241,25 @@ Dans l'onglet **Inventaire** :
 
 ---
 
-### 5. Formation, Repos et Sauvegardes
+### 5. Formation, Repos Complet & Montée de Niveau D&D 5e
 
-- **Formation (Bouton Formation / 🔀)** :
-  - Ouvre une boîte de dialogue permettant de monter ou descendre la position des héros dans le groupe.
-  - **Les 3 premiers héros** forment la **Première Ligne (Front-line)** et encaissent la majorité des attaques directes des monstres.
-  - **Les 3 suivants** sont placés en **Arrière-Garde (Back-line)**, position idéale pour les jeteurs de sorts et personnages plus fragiles.
-- **Repos Complet (Bouton 🏕️ Repos complet)** :
+- **Règle officielle D&D 5e de Montée de Niveau au Repos** :
+  - Les règles D&D 5e stipulent que l'assimilation de nouvelles compétences et le gain de points de vie / sorts s'effectuent lors d'un **Repos complet (Long Rest)**.
+  - Dès qu'un héros accumule assez d'expérience (selon la table officielle D&D 5e : 300 XP pour Niv 2, 900 XP pour Niv 3, 2 700 XP pour Niv 4, etc.), un badge `⭐ Niv+` s'anime sur sa carte et un message d'alerte apparaît à l'issue du combat.
+  - Lorsque le joueur clique sur **🏕️ Repos complet**, la fonction de montée de niveau se déclenche automatiquement pour tous les héros éligibles :
+    - Gain de points de vie max (`1 dé de vie de classe + modificateur de Constitution`).
+    - Recalcul fidèle des emplacements de sorts selon la table officielle D&D 5e.
+    - Apprentissage automatique de nouveaux sorts débloqués selon la classe.
+    - Évolution des attaques multiples (*Multi-Attack* pour Guerrier, Rôdeur, Paladin).
+    - Ouverture d'une **boîte de dialogue festive récapitulative** détaillant les améliorations acquises par chaque aventurier.
+- **Restauration au Repos Complet (Bouton 🏕️ Repos complet)** :
   - Reconstitue 100% des points de vie de tous les aventuriers.
   - Recharge l'intégralité des emplacements de sorts à leur valeur maximale.
   - Dissipe toutes les afflictions et effets temporaires.
+- **Formation (Bouton Formation / 🔀)** :
+  - Ouvre une boîte de dialogue permettant de monter ou descendre la position des héros dans le groupe.
+  - **Les premiers héros** forment la **Première Ligne (Front-line)** et encaissent les attaques de corps à corps.
+  - **Les héros suivants** sont placés en **Arrière-Garde (Back-line)**.
 - **Sauvegarde & Restauration (Boutons 💾, ⬇️, ⬆️)** :
   - Le bouton **Sauvegarder** enregistre manuellement l'état du groupe.
   - Le bouton **Télécharger (⬇️)** exporte un fichier JSON autonome `rpg_savegame.json`.
@@ -240,13 +267,17 @@ Dans l'onglet **Inventaire** :
 
 ---
 
-### 6. Mode Simulation Batch
+### 6. Mode Simulation Batch (Grande Échelle)
 
 Accessible via le bouton supérieur **Mode Simulation Batch** :
 
-1. Choisissez le nombre de combats (de 10 à 1 000).
-2. Définissez la fréquence des pauses à l'auberge (ex : repos tous les 20 combats).
-3. Cliquez sur **Lancer la Simulation**.
+1. **Taille du Groupe (1 à 12 héros)** :
+   - Conformément aux règles D&D 5e, le mode batch met en avant la recommandation : **3 à 5 aventuriers est le format idéal d'un groupe D&D 5e**.
+   - Vous pouvez néanmoins simuler des configurations solo, duo, groupe standard ou raids étendus jusqu'à 12 héros.
+2. **Nombre de Monstres (1 à 16 monstres simultanés)** :
+   - Permet de simuler des duels contre un boss unique ou des affrontements épiques contre des hordes et légions de monstres.
+3. **Nombre de Combats & Fréquence de Repos** :
+   - De 10 à 1 000 combats automatisés avec repos configurable (ex: tous les 10, 20 ou 30 combats).
 4. Le moteur exécute les rounds en quelques millisecondes et produit :
    - Le taux de victoire du groupe.
    - Le volume total d'ennemis tués et de sorts lancés.
@@ -254,6 +285,18 @@ Accessible via le bouton supérieur **Mode Simulation Batch** :
    - Les statistiques de mortalité des monstres par niveau (de Lvl 1 à 20).
    - Les statistiques d'incantation des sorts par niveau (de Lvl 1 à 9).
 5. Vous pouvez cliquer sur **« Jouer avec ce groupe dans l'arène »** pour importer directement le groupe résultant de la simulation dans votre partie interactive !
+
+---
+
+### 7. Règles Officielles D&D 5e (XP & Emplacements de Sorts)
+
+- **Distribution d'XP** :
+  - Chaque monstre octroie une valeur d'XP rigoureusement issue des règles D&D 5e (ex: Gobelin/Squelette CR 1/4 = 50 XP, Orque/Zombie CR 1/2 = 100 XP, Niv 1 = 200 XP, Niv 2 = 450 XP, Niv 3 = 700 XP...).
+  - À la victoire, l'XP total est équitablement partagé entre les membres survivants du groupe.
+  - La progression de niveau respecte la table canonique du Manuel des Joueurs (Niv 1: 0, Niv 2: 300, Niv 3: 900, Niv 4: 2 700, Niv 5: 6 500 XP...).
+- **Répartition des Sorts & Emplacements** :
+  - Fin des tirages aléatoires de slots : les emplacements de sorts suivent exactement les tableaux de lanceurs de sorts du *Player's Handbook* (Magiciens, Clercs, Druides, Bardes, Ensorceleurs pour les lanceurs complets ; Paladins et Rôdeurs pour les demi-lanceurs).
+  - La variante officielle des *Points de Sorts* (Dungeon Master's Guide p. 288) est également référencée dans le moteur de règles `rules.ts`.
 
 ---
 
