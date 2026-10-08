@@ -335,3 +335,41 @@ npm run build
 ```
 
 Accédez ensuite à l'application dans votre navigateur sur `http://localhost:3000`.
+
+---
+
+## 📤 Déploiement sur GitHub Pages
+
+Le projet peut être automatiquement déployé sur GitHub Pages via GitHub Actions. Un workflow prêt à l'emploi a été ajouté dans `.github/workflows/gh-pages.yml` pour builder l'application (npm run build) et déployer le dossier de sortie `dist` sur GitHub Pages à chaque push sur la branche `main`.
+
+Étapes pour utiliser GitHub Pages :
+
+1. S'assurer que la branche par défaut du dépôt est `main` (ou adapter le workflow si votre branche par défaut a un autre nom).
+2. Vérifier que le script de build produit le site dans `dist` (par défaut : `npm run build`). Ce projet utilise Vite et écrit la production dans `dist`.
+3. Commiter et pousser le fichier de workflow :
+
+```bash
+git add .github/workflows/gh-pages.yml
+git commit -m "Add GitHub Actions workflow to deploy to GitHub Pages"
+git push origin main
+```
+
+4. Dans les paramètres du dépôt (Settings → Pages), GitHub Pages sera automatiquement configuré par l'action Deploy Pages. Si nécessaire, activer Pages manuellement puis choisir "GitHub Actions" comme source.
+
+Validation locale de la build (optionnel) :
+
+```bash
+npm ci
+npm run build
+# prévisualiser le build localement
+npm run preview
+# puis ouvrir http://localhost:3000 (par défaut le preview utilise le même port)
+```
+
+Remarques :
+- Le workflow utilise Node.js 22 et exécute `npm ci` puis `npm run build`. Il téléverse `./dist` comme artefact Pages et invoque l'action `actions/deploy-pages` pour publier le site.
+- Si le site doit être publié depuis une branche différente ou un sous-dossier, adaptez `on.push.branches` et le chemin `with.path` dans `.github/workflows/gh-pages.yml`.
+- Pour un domaine personnalisé, configurer le fichier `CNAME` à la racine de `dist` avant le déploiement ou définir le champ Pages dans les settings GitHub.
+
+Si vous souhaitez que j'ajoute la configuration d'un champ `homepage` dans `package.json` ou un fichier `CNAME`, dites quelle URL ou domaine vous souhaitez utiliser et je l'ajouterai.
+
